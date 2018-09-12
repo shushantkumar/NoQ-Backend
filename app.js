@@ -24,11 +24,18 @@ const mongoDB = 'mongodb://user1:user11@ds249942.mlab.com:49942/itaproject';
 mongoose.connect(mongoDB, { useNewUrlParser: true } , (err, db) => {
     if (err) throw err;
     console.log("Database created!");
-    db.close();
+    
   });
 mongoose.Promise= global.Promise;
 
+
+const userRoutes = require('./api/routes/users');
+
 app.get('/', (req, res) => res.send('Hello World!'));
+
+app.use('/users', userRoutes);
+
+
 
 //to handle errors anything getting past above two
 app.use((req, res, next) => {
