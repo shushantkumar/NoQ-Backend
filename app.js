@@ -30,10 +30,12 @@ mongoose.Promise= global.Promise;
 
 
 const userRoutes = require('./api/routes/users');
+const visitRoutes = require('./api/routes/visits');
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
 app.use('/users', userRoutes);
+app.use('/visits', visitRoutes);
 
 
 
