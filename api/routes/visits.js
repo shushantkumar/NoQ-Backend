@@ -1,42 +1,41 @@
-const express = require('express'); 
-const router = express.Router();    
-const mongoose = require('mongoose');
+const express = require("express");
+const router = express.Router();
+const mongoose = require("mongoose");
 // const authcheck = require('../middleware/authcheck');
 
-const User = require('../models/user');
-const Visit = require('../models/visit');
+const User = require("../models/user");
+const Visit = require("../models/visit");
 
-const cors = require('cors');
+const cors = require("cors");
 
 const method = {
-    "origin": "*",
-    "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-    "optionsSuccessStatus": 200
-  };
+  origin: "*",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  optionsSuccessStatus: 200
+};
 
-
-router.get('/',cors(method), (req, res, next) => {
-    Visit.find()
-    .select('user doctorName diagnosis date medicine comment')
-    .populate('user',"name emailID mobileNo")
+router.get("/", cors(method), (req, res, next) => {
+  Visit.find()
+    .select("student doctor diagnosis date medicine comment")
+    .populate("student", "name emailID mobileNo")
+    .populate("doctor", "name emailID mobileNo")
     .exec()
     .then(docs => {
-        console.log(docs);
-        const response = {
-            count: docs.length,
-            visits: docs.map(doc => {
-                return {
-                    doctorName: doc.doctorName,
-                    diagnosis: doc.diagnosis,
-                    _id: doc._id,
-                    date: doc.date,
-                    comment: doc.comment,
-                    medicine: doc.medicine, 
-                    user: doc.user
-            
-                }
-            })
-        };
+      console.log(docs);
+      const response = {
+        count: docs.length,
+        visits: docs.map(doc => {
+          return {
+            doctor: doc.doctor,
+            diagnosis: doc.diagnosis,
+            _id: doc._id,
+            date: doc.date,
+            comment: doc.comment,
+            medicine: doc.medicine,
+            student: doc.student
+          };
+        })
+      };
       //   if (docs.length >= 0) {
       res.status(200).json(response);
       //   } else {
@@ -46,126 +45,121 @@ router.get('/',cors(method), (req, res, next) => {
       //   }
     })
     .catch(err => {
-        console.log(err);
-        res.status(500).json({
-            error: err
-        });
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
     });
 });
 
-
-router.post('/',cors(method), (req, res, next) => {
-    User.findById(req.body.userID)
+router.post("/", cors(method), (req, res, next) => {
+  User.findById(req.body.studentID)
     .then(user => {
-        if (!user) {
-            return res.status(404).json({
-                message: "User not found"
-            });
-        }
-        const visit = new Visit({
-            _id: new mongoose.Types.ObjectId(),
-            doctorName: req.body.doctorName,
-            diagnosis:req.body.diagnosis,
-            comment:req.body.comment,
-            medicine:req.body.medicine,
-            user: req.body.userID
+      if (!user) {
+        return res.status(404).json({
+          message: "User not found"
         });
-        return visit.save();
+      }
+      const visit = new Visit({
+        _id: new mongoose.Types.ObjectId(),
+        doctor: req.body.doctorID,
+        diagnosis: req.body.diagnosis,
+        comment: req.body.comment,
+        medicine: req.body.medicine,
+        student: req.body.studentID
+      });
+      return visit.save();
     })
-    
+
     .then(result => {
-        console.log(result);
-        res.status(201).json({
-            message: "Data stored",
-            data: {
-                doctorName: result.doctorName,
-                date: result.date,
-                _id: result._id,
-                diagnosis: result.diagnosis,
-                user:result.user,
-            
-            }
-        });
+      console.log(result);
+      res.status(201).json({
+        message: "Data stored",
+        data: {
+          doctor: result.doctor,
+          date: result.date,
+          _id: result._id,
+          diagnosis: result.diagnosis,
+          medicine: result.medicine,
+          student: result.student
+        }
+      });
     })
     .catch(err => {
-        console.log(err);
-        res.status(500).json({
-            error: err
-        });
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
     });
 });
 
-
-router.get('/:userId',cors(method),(req, res, next) => {
-    const id = req.params.userId;
-    Visit.find({ user : id })
-    .select('doctorName date _id user diagnosis medicine comment ')
+router.get("/:studentId", cors(method), (req, res, next) => {
+  const id = req.params.studentId;
+  Visit.find({ student: id })
+    .select("doctor date _id student diagnosis medicine comment ")
+    .populate("doctor", "name")
     .exec()
     .then(doc => {
-        console.log("From database", doc);
+      console.log("From database", doc);
 
-       
-        if (doc) {
-            res.status(200).json({
-                visit: doc      
-            });
-        } 
-        else {
-            res
-            .status(404)
-            .json({ message: "No valid entry found for provided ID" });
-        }
+      if (doc) {
+        res.status(200).json({
+          visit: doc
+        });
+      } else {
+        res
+          .status(404)
+          .json({ message: "No valid entry found for provided ID" });
+      }
     })
     .catch(err => {
-        console.log(err);
-        res.status(500).json({ error: err });
-    }); 
+      console.log(err);
+      res.status(500).json({ error: err });
+    });
 });
 
-
-router.patch('/:visitId',cors(method), (req, res, next) => {
-    /*res.status(200).json({
+router.patch("/:visitId", cors(method), (req, res, next) => {
+  /*res.status(200).json({
         message: 'Updated product!'
     });*/
 
-    const id = req.params.visitId;
-    const updateOps = {};
+  const id = req.params.visitId;
+  const updateOps = {};
 
-    for (const ops of req.body) {
-      updateOps[ops.propName] = ops.value;
-    }
-    Visit.update({ _id: id }, { $set: updateOps })
-        .exec()
-        .then(result => {
-            console.log(result);
-            res.status(200).json({
-                message: 'updated',
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
+  for (const ops of req.body) {
+    updateOps[ops.propName] = ops.value;
+  }
+  Visit.update({ _id: id }, { $set: updateOps })
+    .exec()
+    .then(result => {
+      console.log(result);
+      res.status(200).json({
+        message: "updated"
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
 });
 
-router.delete('/:visitId',cors(method),(req, res, next) => {
-    const id = req.params.visitId;
-    Visit.remove({ _id: id })
-        .exec()
-        .then(result => {
-            res.status(200).json({
-            message: 'deleted'
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
+router.delete("/:visitId", cors(method), (req, res, next) => {
+  const id = req.params.visitId;
+  Visit.remove({ _id: id })
+    .exec()
+    .then(result => {
+      res.status(200).json({
+        message: "deleted"
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
 });
-
 
 module.exports = router;

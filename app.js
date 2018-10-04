@@ -35,6 +35,7 @@ const userRoutes = require("./api/routes/users");
 const visitRoutes = require("./api/routes/visits");
 const doctorRoutes = require("./api/routes/doctors");
 const appointRoutes = require("./api/routes/appointments");
+const pendRoutes = require("./api/routes/pendings");
 
 app.get("/", (req, res) => res.send("Hello World!"));
 
@@ -42,6 +43,7 @@ app.use("/users", userRoutes);
 app.use("/visits", visitRoutes);
 app.use("/doctors", doctorRoutes);
 app.use("/appointments", appointRoutes);
+app.use("/pendings", pendRoutes);
 
 //to handle errors anything getting past above two
 app.use((req, res, next) => {

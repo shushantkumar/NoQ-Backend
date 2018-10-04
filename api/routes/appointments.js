@@ -18,12 +18,13 @@ router.get("/", cors(method), (req, res, next) => {
   Appointment.find()
     .select("student doctor token date approx_date")
     .populate("student", "name emailID mobileNo")
+    .populate("doctor", "name emailID mobileNo")
     .exec()
     .then(docs => {
       console.log(docs);
       const response = {
         count: docs.length,
-        visits: docs.map(doc => {
+        appointments: docs.map(doc => {
           return {
             _id: doc._id,
             date: doc.date,
@@ -51,7 +52,7 @@ router.get("/", cors(method), (req, res, next) => {
 });
 
 router.post("/", cors(method), (req, res, next) => {
-  User.findById(req.body.studentId)
+  User.findById(req.body.studentID)
     .then(user => {
       if (!user) {
         return res.status(404).json({
@@ -60,7 +61,7 @@ router.post("/", cors(method), (req, res, next) => {
       }
       const appoint = new Appointment({
         _id: new mongoose.Types.ObjectId(),
-        doctor: req.body.doctorId,
+        doctor: req.body.doctorID,
         approx_date: req.body.approx_date,
         token: req.body.token,
         student: req.body.studentID
@@ -90,17 +91,18 @@ router.post("/", cors(method), (req, res, next) => {
     });
 });
 
-router.get("/:studentId", cors(method), (req, res, next) => {
-  const id = req.params.studentId;
-  Appointment.find({ student: id })
+router.get("/:doctorID", cors(method), (req, res, next) => {
+  const id = req.params.doctorID;
+  Appointment.find({ doctor: id })
     .select("student doctor token date approx_date")
+    .populate("student", "name emailID mobileNo")
     .exec()
     .then(doc => {
       console.log("From database", doc);
 
       if (doc) {
         res.status(200).json({
-          visit: doc
+          appointment: doc
         });
       } else {
         res

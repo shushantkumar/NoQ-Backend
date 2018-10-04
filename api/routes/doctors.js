@@ -20,7 +20,7 @@ router.get("/", cors(method), (req, res, next) => {
       console.log(docs);
       const response = {
         count: docs.length,
-        users: docs.map(doc => {
+        doctors: docs.map(doc => {
           return {
             name: doc.name,
             mobileNo: doc.mobileNo,
@@ -92,8 +92,8 @@ router.post("/signup", cors(method), (req, res, next) => {
     });
 });
 
-router.get("/:userId", cors(method), (req, res, next) => {
-  const id = req.params.userId;
+router.get("/:doctorId", cors(method), (req, res, next) => {
+  const id = req.params.doctorId;
   Doctor.findById(id)
     .select("name emailID mobileNo _id doctor specialization")
     .exec()
@@ -135,7 +135,7 @@ router.post("/login", cors(method), (req, res, next) => {
           const token = jwt.sign(
             {
               emailID: doctor[0].emailID,
-              userId: doctor[0]._id
+              doctorID: doctor[0]._id
             },
             "secret",
             { expiresIn: "2h" }
@@ -143,7 +143,7 @@ router.post("/login", cors(method), (req, res, next) => {
 
           return res.status(200).json({
             message: "Login Successful",
-            userID: doctor[0]._id,
+            doctorID: doctor[0]._id,
             token: token
           });
         }
@@ -160,8 +160,8 @@ router.post("/login", cors(method), (req, res, next) => {
     });
 });
 
-router.delete("/:userId", cors(method), (req, res, next) => {
-  Doctor.remove({ _id: req.params.userId })
+router.delete("/:doctorId", cors(method), (req, res, next) => {
+  Doctor.remove({ _id: req.params.doctorId })
     .exec()
     .then(result => {
       res.status(200).json({
@@ -176,8 +176,8 @@ router.delete("/:userId", cors(method), (req, res, next) => {
     });
 });
 
-router.patch("/:userId", cors(method), (req, res, next) => {
-  const id = req.params.userId;
+router.patch("/:doctorId", cors(method), (req, res, next) => {
+  const id = req.params.doctorId;
   const updateOps = {};
   //this loop to check which one to patch
   for (const ops of req.body) {
