@@ -24,7 +24,7 @@ router.get('/',cors(method), (req, res, next) => {
         console.log(docs);
         const response = {
             count: docs.length,
-            orders: docs.map(doc => {
+            visits: docs.map(doc => {
                 return {
                     doctorName: doc.doctorName,
                     diagnosis: doc.diagnosis,
@@ -96,11 +96,10 @@ router.post('/',cors(method), (req, res, next) => {
 });
 
 
-router.get('/:visitId',cors(method),(req, res, next) => {
-    const id = req.params.visitId;
-    Visit.findById(id)
+router.get('/:userId',cors(method),(req, res, next) => {
+    const id = req.params.userId;
+    Visit.find({ user : id })
     .select('doctorName date _id user diagnosis medicine comment ')
-    .populate('user',"name emailID mobileNo")
     .exec()
     .then(doc => {
         console.log("From database", doc);
