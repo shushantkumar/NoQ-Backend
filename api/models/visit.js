@@ -21,7 +21,11 @@ const visitSchema = mongoose.Schema({
       duration: { type: String, required: true },
       dosage: { type: String, required: true }
     }
-  ]
+  ],
+  bp: { type: Number },
+  pulse: { type: Number },
+  weight: { type: Number },
+  bmi: { type: Number }
 });
 
 module.exports = mongoose.model("Visit", visitSchema);

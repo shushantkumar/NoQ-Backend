@@ -16,7 +16,9 @@ const method = {
 
 router.get("/", cors(method), (req, res, next) => {
   Visit.find()
-    .select("student doctor diagnosis date medicine comment")
+    .select(
+      "student doctor diagnosis date medicine comment bp bmi weight pulse"
+    )
     .populate("student", "name emailID mobileNo")
     .populate("doctor", "name emailID mobileNo")
     .exec()
@@ -32,7 +34,11 @@ router.get("/", cors(method), (req, res, next) => {
             date: doc.date,
             comment: doc.comment,
             medicine: doc.medicine,
-            student: doc.student
+            student: doc.student,
+            bp: doc.bp,
+            pulse: doc.dp,
+            bmi: doc.pulse,
+            weight: doc.weight
           };
         })
       };
@@ -66,7 +72,11 @@ router.post("/", cors(method), (req, res, next) => {
         diagnosis: req.body.diagnosis,
         comment: req.body.comment,
         medicine: req.body.medicine,
-        student: req.body.studentID
+        student: req.body.studentID,
+        bp: req.body.bp,
+        pulse: req.body.pulse,
+        weight: req.body.weight,
+        bmi: req.body.bmi
       });
       return visit.save();
     })
@@ -81,7 +91,11 @@ router.post("/", cors(method), (req, res, next) => {
           _id: result._id,
           diagnosis: result.diagnosis,
           medicine: result.medicine,
-          student: result.student
+          student: result.student,
+          bp: result.bp,
+          weight: result.weight,
+          bmi: result.bmi,
+          pulse: result.pulse
         }
       });
     })
@@ -96,7 +110,62 @@ router.post("/", cors(method), (req, res, next) => {
 router.get("/:studentId", cors(method), (req, res, next) => {
   const id = req.params.studentId;
   Visit.find({ student: id })
-    .select("doctor date _id student diagnosis medicine comment ")
+    .select(
+      "doctor date _id student diagnosis medicine comment bp bmi weight pulse "
+    )
+    .populate("doctor", "name")
+    .exec()
+    .then(doc => {
+      console.log("From database", doc);
+
+      if (doc) {
+        res.status(200).json({
+          visit: doc
+        });
+      } else {
+        res
+          .status(404)
+          .json({ message: "No valid entry found for provided ID" });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({ error: err });
+    });
+});
+router.get("/d/:doctorId", cors(method), (req, res, next) => {
+  const id = req.params.doctorId;
+  Visit.find({ doctor: id })
+    .select(
+      "doctor date _id student diagnosis medicine comment bp bmi weight pulse"
+    )
+    .populate("doctor", "name")
+    .exec()
+    .then(doc => {
+      console.log("From database", doc);
+
+      if (doc) {
+        res.status(200).json({
+          visit: doc
+        });
+      } else {
+        res
+          .status(404)
+          .json({ message: "No valid entry found for provided ID" });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({ error: err });
+    });
+});
+router.get("/:studentId/:doctorId", cors(method), (req, res, next) => {
+  const id = req.params.doctorId,
+    ID = req.params.studentId;
+  Visit.find({ doctor: id, student: ID })
+    .select(
+      "doctor date _id student diagnosis medicine comment bp bmi weight pulse "
+    )
     .populate("doctor", "name")
     .exec()
     .then(doc => {

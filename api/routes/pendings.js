@@ -7,7 +7,6 @@ const User = require("../models/user");
 const Pending = require("../models/pending");
 
 const cors = require("cors");
-
 const method = {
   origin: "*",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -134,7 +133,7 @@ router.post("/", cors(method), (req, res, next) => {
 
 router.get("/:doctorID", cors(method), (req, res, next) => {
   const id = req.params.doctorID;
-  Pending.find({ doctor: id, flag: "-1" })
+  Pending.find({ doctor: id, flag: "0" })
     .select("student doctor token date approx_date flag")
     .populate("student", "name emailID mobileNo")
     .exec()
@@ -210,7 +209,7 @@ router.patch("/:pendId", cors(method), (req, res, next) => {
   for (const ops of req.body) {
     updateOps[ops.propName] = ops.value;
   }
-  Visit.update({ _id: id }, { $set: updateOps })
+  Pending.update({ _id: id }, { $set: updateOps })
     .exec()
     .then(result => {
       console.log(result);
