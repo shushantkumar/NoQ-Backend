@@ -70,6 +70,39 @@ router.get('/:day/:month/:sid',cors(method),(req,res,next)=>{
 
 });
 
+router.get('/:day/:month/n/:name',cors(method),(req,res,next)=>{
+
+    Court.find({day: req.params.day ,month: req.params.month,courtName : req.params.name})
+    .select()  
+    .exec()
+    .then(docs => {
+        console.log(docs);
+        const response = {
+            
+            court: docs.map(doc => {
+            return {
+                courtName: doc.courtName,
+                courtBooked: doc.courtBooked,
+                timeslot: doc.timeslot,
+                usersDetails: doc.usersDetails,
+                day: doc.day,
+                month: doc.month,
+                created: doc.created,
+                _id: doc._id
+            };
+            })
+        };
+        res.status(200).json(response);      
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({
+            error: err
+        });
+    });
+
+});
+
 
 router.get('/',cors(method),(req,res,next)=>{
 
