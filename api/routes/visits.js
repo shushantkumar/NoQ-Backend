@@ -140,6 +140,7 @@ router.get("/d/:doctorId", cors(method), (req, res, next) => {
       "doctor date _id student diagnosis medicine comment bp bmi weight pulse"
     )
     .populate("doctor", "name")
+    .populate("student", "name mobileNo emailID")
     .exec()
     .then(doc => {
       console.log("From database", doc);

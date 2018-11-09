@@ -13,6 +13,44 @@ const method = {
   optionsSuccessStatus: 200
 };
 
+router.get("/dummy", cors(method), (req, res, next) => {
+  Pending.find({ _id: "5bb927c17af6db2b481f5d53" })
+    .select("student doctor token date approx_date flag")
+    .populate("student", "name emailID mobileNo")
+    .populate("doctor", "name emailID mobileNo")
+    .exec()
+    .then(docs => {
+      console.log(docs);
+      const response = {
+        count: docs.length,
+        pendings: docs.map(doc => {
+          return {
+            _id: doc._id,
+            date: doc.date,
+            approx_date: doc.approx_date,
+            token: doc.token,
+            doctor: doc.doctor,
+            student: doc.student,
+            flag: doc.flag
+          };
+        })
+      };
+      //   if (docs.length >= 0) {
+      res.status(200).json(response);
+      //   } else {
+      //       res.status(404).json({
+      //           message: 'No entries found'
+      //       });
+      //   }
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
+});
+
 router.get("/", cors(method), (req, res, next) => {
   Pending.find({ flag: "-1" })
     .select("student doctor token date approx_date flag")
@@ -88,26 +126,14 @@ router.get("/0", cors(method), (req, res, next) => {
       });
     });
 });
+router.post("/dummy", cors(method), (req, res, next) => {
+  const pend = new Pending({
+    _id: "5bb927c17af6db2b481f5d53",
+    token: "0"
+  });
 
-router.post("/", cors(method), (req, res, next) => {
-  User.findById(req.body.studentID)
-    .then(user => {
-      if (!user) {
-        return res.status(404).json({
-          message: "User not found"
-        });
-      }
-      const pend = new Pending({
-        _id: new mongoose.Types.ObjectId(),
-        doctor: req.body.doctorID,
-        approx_date: req.body.approx_date,
-        token: req.body.token,
-        student: req.body.studentID,
-        flag: req.body.flag
-      });
-      return pend.save();
-    })
-
+  pend
+    .save()
     .then(result => {
       console.log(result);
       res.status(201).json({
@@ -126,6 +152,89 @@ router.post("/", cors(method), (req, res, next) => {
     .catch(err => {
       console.log(err);
       res.status(500).json({
+        error: err
+      });
+    });
+});
+
+router.post("/", cors(method), (req, res, next) => {
+  var tok;
+  var upt = {};
+  Pending.find({ _id: "5bb927c17af6db2b481f5d53" })
+    .select("date token")
+    .exec()
+    .then(docs => {
+      console.log(docs);
+      const var1 = docs[0].date.getDate();
+      const var2 = new Date();
+      // console.log("var1", var1, "var 2", var2.getDate());
+      if (var1 != var2.getDate()) {
+        console.log("Reset ");
+        tok = 1;
+        upt["date"] = var2;
+        upt["token"] = tok;
+      } else {
+        tok = docs[0].token + 1;
+        upt["token"] = tok;
+        // console.log("docs[0].token + 1:", docs[0].token + 1);
+      }
+      console.log(upt);
+      console.log("tok1: ", tok);
+      Pending.update({ _id: "5bb927c17af6db2b481f5d53" }, { $set: upt })
+        .exec()
+        .then()
+        .catch(err => {
+          console.log(err);
+          res.status(500).json({
+            error: err
+          });
+        });
+
+      User.findById(req.body.studentID)
+        .then(user => {
+          if (!user) {
+            return res.status(404).json({
+              message: "User not found"
+            });
+          }
+          const pend = new Pending({
+            _id: new mongoose.Types.ObjectId(),
+            doctor: req.body.doctorID,
+            approx_date: req.body.approx_date,
+            token: req.body.token,
+            student: req.body.studentID,
+            flag: req.body.flag,
+            token: tok
+          });
+
+          return pend.save();
+        })
+
+        .then(result => {
+          console.log(result);
+          res.status(201).json({
+            message: "Data stored",
+            data: {
+              doctor: result.doctor,
+              date: result.date,
+              approx_date: result.approx_date,
+              _id: result._id,
+              token: result.token,
+              student: result.student,
+              flag: result.flag
+            }
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          res.status(566).json({
+            error: err
+          });
+        });
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(555).json({
         error: err
       });
     });
@@ -160,7 +269,8 @@ router.get("/s/:studentID", cors(method), (req, res, next) => {
   const id = req.params.studentID;
   Pending.find({ student: id })
     .select("student doctor token date approx_date flag")
-    .populate("student", "name emailID mobileNo")
+    .populate("doctor", "name emailID mobileNo")
+    .populate("student", "name")
     .exec()
     .then(doc => {
       console.log("From database", doc);
