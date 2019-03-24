@@ -153,7 +153,8 @@ router.post("/login",cors(method), (req, res, next) => {
                     const token = jwt.sign(
                     {
                         emailID: user[0].emailID,
-                        userId: user[0]._id
+                        id: user[0]._id,
+                        role : "student"
                     },'secret',{ expiresIn: '2h' }            
                     );
 
@@ -223,5 +224,46 @@ router.patch('/:userId',cors(method), (req, res, next) => {
         });
   });
 
+
+
+
+  router.post('/bypass',cors(method),(req,res,next)=>{
+
+            bcrypt.hash(req.body.password, 10, (err,hash)=>{
+                if(err){
+                    console.log(err);
+                    res.status(500).json({
+                    error: err
+                    });
+                }
+                else {
+                    const user = new User({
+                    _id: req.body._id,
+                    name: req.body.name,
+                    emailID: req.body.emailID,
+                    mobileNo:req.body.mobileNo,
+                    address:req.body.address,
+                    password: hash
+    
+                    });
+                    
+                    user
+                    .save()
+                    .then(result => {
+                        console.log(result);
+                        res.status(201).json({
+                        message: "User saved",
+                        Details: result
+                        });
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        res.status(500).json({
+                        error: err
+                        });
+                    });
+                }
+            });  
+});
 
 module.exports = router;

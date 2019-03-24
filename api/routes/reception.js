@@ -134,7 +134,8 @@ router.post("/login", cors(method), (req, res, next) => {
             const token = jwt.sign(
               {
                 emailID: reception[0].emailID,
-                receptionID: reception[0]._id
+                id: reception[0]._id,
+                role: "receptionist"
               },
               "secret",
               { expiresIn: "2h" }
