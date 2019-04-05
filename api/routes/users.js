@@ -27,7 +27,8 @@ router.get('/',cors(method),(req,res,next)=>{
                 mobileNo: doc.mobileNo,
                 emailID: doc.emailID,
                 address: doc.address,
-                _id: doc._id
+                _id: doc._id,
+                stype: doc.stype
             };
             })
         };
@@ -77,6 +78,7 @@ router.post('/signup',cors(method),(req,res,next)=>{
                     emailID: req.body.emailID,
                     mobileNo:req.body.mobileNo,
                     address:req.body.address,
+                    stype: req.body.stype,
                     password: hash
     
                     });
@@ -154,14 +156,15 @@ router.post("/login",cors(method), (req, res, next) => {
                     {
                         emailID: user[0].emailID,
                         id: user[0]._id,
-                        role : "student"
+                        sessionvar : user[0].stype
                     },'secret',{ expiresIn: '2h' }            
                     );
 
                     return res.status(200).json({
                         message: 'Login Successful',
                         userID:user[0]._id,
-                        token: token
+                        token: token,
+                        sessionvar: user[0].stype
                     });
                 }
                 res.status(401).json({
@@ -243,6 +246,7 @@ router.patch('/:userId',cors(method), (req, res, next) => {
                     emailID: req.body.emailID,
                     mobileNo:req.body.mobileNo,
                     address:req.body.address,
+                    stype:req.body.stype,
                     password: hash
     
                     });

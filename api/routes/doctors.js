@@ -136,7 +136,7 @@ router.post("/login", cors(method), (req, res, next) => {
             {
               emailID: doctor[0].emailID,
               id: doctor[0]._id,
-              role: "doctor"
+              sessionvar: 0
             },
             "secret",
             { expiresIn: "2h" }
@@ -145,7 +145,8 @@ router.post("/login", cors(method), (req, res, next) => {
           return res.status(200).json({
             message: "Login Successful",
             doctorID: doctor[0]._id,
-            token: token
+            token: token,
+            sessionvar: 0
           });
         }
         res.status(401).json({

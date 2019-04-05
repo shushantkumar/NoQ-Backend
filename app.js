@@ -15,6 +15,12 @@ const method = {
 // mongoose.connect(mongoDB);
 // mongoose.Promise= global.Promise;       //to remove some warning
 
+// app.use(function(req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Authorization, Content-Type, Accept");
+//   next();
+// });
+
 app.use(morgan("dev"));
 app.use(cors(method));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -36,6 +42,12 @@ const visitRoutes = require("./api/routes/visits");
 const doctorRoutes = require("./api/routes/doctors");
 const pendRoutes = require("./api/routes/pendings");
 const receptRoutes = require("./api/routes/reception");
+const courtRoutes = require("./api/routes/court");
+const eventRoutes = require("./api/routes/event");
+const userdefRoutes = require("./api/routes/userdef");
+const validate = require("./api/middleware/authenticate");
+
+// app.use(validate);
 
 app.get("/", (req, res) => res.send("Hello World!"));
 
@@ -44,6 +56,11 @@ app.use("/visits", visitRoutes);
 app.use("/doctors", doctorRoutes);
 app.use("/pendings", pendRoutes);
 app.use("/reception", receptRoutes);
+app.use("/court", courtRoutes);
+app.use("/event", eventRoutes);
+app.use("/userdef", userdefRoutes);
+
+
 
 //to handle errors anything getting past above two
 app.use((req, res, next) => {

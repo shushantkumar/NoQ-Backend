@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 var roles=require("./roles");
+var exceptionCRT = "/court/";
 
 module.exports = (req, res, next) => {
 
@@ -7,8 +8,7 @@ module.exports = (req, res, next) => {
         var url=req.url;
         var rm="";
         var r={ };
-        var crt="/court/"; 
-        if(url.search(crt)!=-1)url=crt;
+        if(url.search(exceptionCRT)!=-1)url=exceptionCRT;
         console.log("Here", url);
         if(typeof req.headers.authorization !== 'undefined')
         { 
@@ -16,10 +16,10 @@ module.exports = (req, res, next) => {
         const decoded = jwt.verify(token, 'secret');
         req.userData = decoded;
         rm+=decoded.id;
-        r= roles[decoded.role];
+        r= roles[decoded.sessionvar];
         } 
         else
-        r= roles["guest"];
+        r= roles[444];
         url=url.replace(rm,"");        
 
         if(r[url]=== true)
