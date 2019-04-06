@@ -14,6 +14,96 @@ const method = {
     "optionsSuccessStatus": 200
   };
 
+function parseVar(docs,id){
+  var t;
+  var temp = [];
+  var n = docs.length;
+  for(var i = 0;i<n;i++){
+    if(id == docs[i].role){
+      t = i;
+      break;
+    }
+  }
+  tn = docs[t].access.length;
+  console.log(tn);
+  if(tn != 0){
+    for(var i=0;i<tn;i++){
+      temp.push(docs[t].access[i]);
+      temp.push.apply(temp,parseVar(docs,docs[t].access[i]));
+    }
+  }
+  console.log(temp);
+  return temp;
+}
+
+function delVar(docs,id){
+  var n = docs.length;
+  for(var i = 0;i<n;i++){
+    var t = docs[i].access;
+    for(var j = 0;j<t;j++){
+      if(docs[i].access[j]==id){
+        docs[i].access.splice(j,1);
+        j--;
+        t--;
+      }
+    }
+  }
+  return docs;
+}
+
+
+router.get("/rolesget/:roleID", cors(method), (req, res, next) => {
+  const roleID = parseInt(req.params.roleID);
+  Role.find()
+    .select(
+      "role access"
+    )
+    .exec()
+    .then(docs => {
+      // console.log(docs);
+      
+      var temp = [];
+      temp.push(roleID);
+      // console.log(parseVar(docs,roleID));
+      var tt = parseVar(docs,roleID);
+      temp.push.apply(temp,tt);
+      
+      res.status(200).json(temp);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
+});
+
+
+router.get("/rolesdel/:roleID", cors(method), (req, res, next) => {
+  const roleID = parseInt(req.params.roleID);
+  Role.find()
+    .select(
+      "role access"
+    )
+    .exec()
+    .then(docs => {
+      // console.log(docs[0]);
+      Role.remove({ role : req.params.roleID })
+      .exec()
+      .then()
+      .catch();
+      docs = delVar(docs,roleID);
+      docs.save();
+      res.status(200).json(docs);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
+});
+
 router.post("/roles", cors(method), (req, res, next) => {
 
 Role.find({role : req.body.role})
@@ -28,7 +118,7 @@ Role.find({role : req.body.role})
     const r = new Role({
     _id: new mongoose.Types.ObjectId(),
     role: req.body.role,
-    name: req.body.name,
+    // name: req.body.name,
     access: req.body.access
     });
     return r.save();
@@ -53,6 +143,30 @@ Role.find({role : req.body.role})
     });
 });
 });
+
+
+router.post("/roles/add", cors(method), (req, res, next) => {
+
+  const node = req.body.node;
+  const child = req.body.child;
+
+  Role.find({role : req.body.node})
+  .then(docs => {
+    console.log(docs);
+  })
+  
+  .then(result => {
+      console.log(result);
+      res.status(201).json();
+  })
+  .catch(err => {
+      console.log(err);
+      res.status(500).json({
+      error: err
+      });
+  });
+  });
+
 
 router.get('/roles/:roleID/:newRole',cors(method), (req, res, next) => {
     
@@ -114,6 +228,7 @@ router.get('/roles/del/:roleID/:newRole',cors(method), (req, res, next) => {
       });
 });
 
+
 router.get("/roles/", cors(method), (req, res, next) => {
     Role.find()
       .select(
@@ -126,9 +241,9 @@ router.get("/roles/", cors(method), (req, res, next) => {
           count: docs.length,
           userRoles: docs.map(doc => {
             return {
-              name: doc.name,
-              role: doc.role,
-              access: doc.access
+              // name: doc.name,
+              node: doc.role,
+              child: doc.access
             };
           })
         };
@@ -140,10 +255,41 @@ router.get("/roles/", cors(method), (req, res, next) => {
           error: err
         });
       });
-  });
+});
+
+router.get("/rolesget/:roleID", cors(method), (req, res, next) => {
+  Role.find()
+    .select(
+      "role access"
+    )
+    .exec()
+    .then(docs => {
+      console.log(docs);
+      var n = docs.length;
+      var temp = [];
+
+      // const response = {
+      //   count: docs.length,
+      //   userRoles: docs.map(doc => {
+      //     return {
+      //       // name: doc.name,
+      //       node: doc.role,
+      //       child: doc.access
+      //     };
+      //   })
+      // };
+      res.status(200).json(docs[0].access);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
+});
   
 
-  router.get("/roles/:roleId", cors(method), (req, res, next) => {
+ router.get("/roles/:roleId", cors(method), (req, res, next) => {
     Role.find({role: req.params.roleId })
       .select(
         "_id name role access"
