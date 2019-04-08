@@ -16,6 +16,19 @@ const method = {
     "optionsSuccessStatus": 200
   };
 
+  function parseVar2(docs){
+    var t;
+    var temp = [];
+    var n = docs.length;;
+    if(n != 0){
+      for(var i=0;i<n;i++){
+        temp.push(docs[i].pno);
+      }
+    }
+    console.log(temp);
+    return temp;
+  }
+
 function parseVar(docs,id){
   var t;
   var temp = [];
@@ -69,8 +82,28 @@ router.get("/rolesget/:roleID", cors(method), (req, res, next) => {
       // console.log(parseVar(docs,roleID));
       var tt = parseVar(docs,roleID);
       temp.push.apply(temp,tt);
+      Permission.find({ role : { $in : temp } })
+      .select(" role pno")
+      .exec()
+      .then(docu => {
+          
+          console.log(docu);
+          var temp2= parseVar2(docu);
+          console.log("permission",docu);
       
-      res.status(200).json(temp);
+          var msg={
+            "roles": temp,
+            "permissions" : temp2
+          }
+          res.status(200).json(msg);
+        })
+        .catch(err => {
+        console.log(err);
+        res.status(500).json({
+            error: err
+        });
+        });
+       
     })
     .catch(err => {
       console.log(err);
@@ -235,37 +268,6 @@ router.get("/roles/", cors(method), (req, res, next) => {
       });
 });
 
-router.get("/rolesget/:roleID", cors(method), (req, res, next) => {
-  Role.find()
-    .select(
-      "role access"
-    )
-    .exec()
-    .then(docs => {
-      console.log(docs);
-      var n = docs.length;
-      var temp = [];
-
-      // const response = {
-      //   count: docs.length,
-      //   userRoles: docs.map(doc => {
-      //     return {
-      //       // name: doc.name,
-      //       node: doc.role,
-      //       child: doc.access
-      //     };
-      //   })
-      // };
-      res.status(200).json(docs[0].access);
-    })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({
-        error: err
-      });
-    });
-});
-  
 
  router.get("/roles/:roleId", cors(method), (req, res, next) => {
     Role.find({role: req.params.roleId })
@@ -441,8 +443,7 @@ router.get("/permissions/:rId", cors(method), (req, res, next) => {
     
 
 router.delete("/permissions/:permissionId/:rid",cors(method), (req, res, next) => {
-
-    Permission.remove({role: req.params.rId, pno: req.params.permissionId })
+    Permission.remove({role: req.params.rid, pno: req.params.permissionId })
         .exec()
         .then(result => {
             res.status(200).json({
