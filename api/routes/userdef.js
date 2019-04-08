@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 const bcrypt = require ('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Role = require('../models/roles');
+const Urole = require('../models/urole');
 const Permission= require('../models/permission'); 
+const Pertype= require('../models/pertype');
 
 const cors = require('cors');
 
@@ -60,7 +62,7 @@ router.get("/rolesget/:roleID", cors(method), (req, res, next) => {
     )
     .exec()
     .then(docs => {
-      // console.log(docs);
+      console.log(docs);
       
       var temp = [];
       temp.push(roleID);
@@ -143,30 +145,6 @@ Role.find({role : req.body.role})
     });
 });
 });
-
-
-router.post("/roles/add", cors(method), (req, res, next) => {
-
-  const node = req.body.node;
-  const child = req.body.child;
-
-  Role.find({role : req.body.node})
-  .then(docs => {
-    console.log(docs);
-  })
-  
-  .then(result => {
-      console.log(result);
-      res.status(201).json();
-  })
-  .catch(err => {
-      console.log(err);
-      res.status(500).json({
-      error: err
-      });
-  });
-  });
-
 
 router.get('/roles/:roleID/:newRole',cors(method), (req, res, next) => {
     
@@ -354,7 +332,7 @@ router.post("/permissions", cors(method), (req, res, next) => {
         if(docs.length >=1){
             
             console.log("role ");
-            Permission.find({role : req.body.role , route: req.body.route })
+            Permission.find({role : req.body.role , pno: req.body.pno })
             .then(user => {
                 if(user.length >=1){
                     
@@ -366,7 +344,7 @@ router.post("/permissions", cors(method), (req, res, next) => {
                 const r = new Permission({
                 _id: new mongoose.Types.ObjectId(),
                 role: req.body.role,
-                route: req.body.route
+                pno: req.body.pno
                 });
                 return r.save();
             })
@@ -377,8 +355,7 @@ router.post("/permissions", cors(method), (req, res, next) => {
                 message: "Data stored",
                 data: {
                     role: result.role,
-                    route: result.route,
-                    _id: result._id
+                    pno: result.pno
                 }
                 });
             })
@@ -412,9 +389,7 @@ router.post("/permissions", cors(method), (req, res, next) => {
 
 router.get("/permissions/", cors(method), (req, res, next) => {
     Permission.find()
-        .select(
-        "_id role route"
-        )
+        .select("role pno")
         .exec()
         .then(docs => {
         console.log(docs);
@@ -423,8 +398,7 @@ router.get("/permissions/", cors(method), (req, res, next) => {
             rolePermission: docs.map(doc => {
             return {
                 role: doc.role,
-                route: doc.route,
-                _id: doc._id
+                pno: doc.pno
             };
             })
         };
@@ -441,7 +415,7 @@ router.get("/permissions/", cors(method), (req, res, next) => {
 router.get("/permissions/:rId", cors(method), (req, res, next) => {
     Permission.find( { role : req.params.rId})
         .select(
-        "_id role route"
+        "role pno"
         )
         .exec()
         .then(docs => {
@@ -451,8 +425,7 @@ router.get("/permissions/:rId", cors(method), (req, res, next) => {
             rolePermission: docs.map(doc => {
             return {
                 role: doc.role,
-                route: doc.route,
-                _id: doc._id
+                pno: doc.pno
             };
             })
         };
@@ -467,9 +440,9 @@ router.get("/permissions/:rId", cors(method), (req, res, next) => {
     });
     
 
-router.delete("/permissions/:permissionId",cors(method), (req, res, next) => {
+router.delete("/permissions/:permissionId/:rid",cors(method), (req, res, next) => {
 
-    Permission.remove({ _id: req.params.permissionId })
+    Permission.remove({role: req.params.rId, pno: req.params.permissionId })
         .exec()
         .then(result => {
             res.status(200).json({
@@ -484,14 +457,167 @@ router.delete("/permissions/:permissionId",cors(method), (req, res, next) => {
         });
 });
 
-router.post("/permissions/delete",cors(method), (req, res, next) => {
+router.post("/pertype", cors(method), (req, res, next) => {
 
-  Permission.remove({ role: req.body.role , route: req.body.route })
+  Pertype.find({pno : req.body.pno})
+  .then(user => {
+      if(user.length >=1){
+          
+          return res.status(409).json({
+          message: "Permission Type already exists"
+          });
+  
+      }
+      const r = new Pertype({
+      _id: new mongoose.Types.ObjectId(),
+      pno: req.body.pno,
+      route: req.body.route,
+      type: req.body.type
+      });
+      return r.save();
+  })
+  
+  .then(result => {
+      console.log(result);
+      res.status(201).json({
+      message: "Data stored",
+      data: {
+          pno: result.pno,
+          route: result.route,
+          type: result.type
+      }
+      });
+  })
+  .catch(err => {
+      console.log(err);
+      res.status(500).json({
+      error: err
+      });
+  });
+  });  
+
+router.get("/pertype/", cors(method), (req, res, next) => {
+  Pertype.find()
+      .select(
+      "type pno route"
+      )
+      .exec()
+      .then(docs => {
+      console.log(docs);
+      const response = {
+          count: docs.length,
+          rolePermission: docs.map(doc => {
+          return {
+              pno: doc.pno,
+              route: doc.route,
+              type: doc.type
+          };
+          })
+      };
+      res.status(200).json(response);
+      })
+      .catch(err => {
+      console.log(err);
+      res.status(500).json({
+          error: err
+      });
+      });
+  });
+
+
+router.delete("/pertype/:pnoId",cors(method), (req, res, next) => {
+
+    Pertype.remove({ pno: req.params.pnoId })
+        .exec()
+        .then(result => {
+            res.status(200).json({
+                message: "Permission type deleted"
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                error: err
+            });
+        });
+});
+
+router.post("/uroles", cors(method), (req, res, next) => {
+
+  Urole.find({name : req.body.name})
+  .then(user => {
+      if(user.length >=1){
+        user[0].role.push(req.body.role);
+        user[0].save();
+        res.status(200).json(user);
+  
+      }
+      else{
+      const r = new Urole({
+      _id: new mongoose.Types.ObjectId(),
+      role: req.body.role,
+      name: req.body.name
+      });
+      return r.save();
+    }
+  })
+  
+  .then(result => {
+      console.log(result);
+      res.status(201).json({
+      message: "Data stored",
+      data: {
+          name: result.name,
+          role: result.role
+      }
+      });
+  })
+  .catch(err => {
+      console.log(err);
+      res.status(500).json({
+      error: err
+      });
+  });
+  });
+  
+  router.get("/uroles/", cors(method), (req, res, next) => {
+    Urole.find()
+      .select(
+        "name role _id"
+      )
+      .exec()
+      .then(docs => {
+        console.log(docs);
+        const response = {
+          count: docs.length,
+          userRoles: docs.map(doc => {
+            return {
+              id: doc._id,
+              user: doc.name,
+              role: doc.role
+            };
+          })
+        };
+        res.status(200).json(response);
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json({
+          error: err
+        });
+      });
+});
+
+router.delete("/uroles/:roleId",cors(method), (req, res, next) => {
+    
+  Urole.remove({ _id : req.params.roleId })
       .exec()
       .then(result => {
-          res.status(200).json({
-              message: "Permission role deleted"
-          });
+
+        res.status(200).json({
+          message: "User role deleted"
+      });
+
       })
       .catch(err => {
           console.log(err);
